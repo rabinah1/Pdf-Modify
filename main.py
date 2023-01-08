@@ -1,4 +1,4 @@
-from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
+from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 import os
 import sys
 from PyQt5.QtWidgets import *
@@ -151,7 +151,7 @@ class pdf_manipulate(QWidget):
         self.file_name_dict_splitter[idx] = file_name_full
 
     def merge_files(self):
-        merger = PdfFileMerger()
+        merger = PdfMerger()
         for i in range(self.num_of_files_merger + 1):
             if (not self.line_list_merger[i].text() or self.line_list_merger[i].text() == "INVALID FILE"):
                 self.line_list_merger[i].setText("INVALID FILE")
@@ -166,7 +166,7 @@ class pdf_manipulate(QWidget):
             QMessageBox.about(self, "Error", "Save file name cannot be empty")
             return
         for i in range(self.num_of_files_merger + 1):
-            merger.append(PdfFileReader(self.file_name_dict_merger[i], 'rb'))
+            merger.append(PdfReader(self.file_name_dict_merger[i], 'rb'))
         merger.write(save_file_name[0])
         merger.close()
         QMessageBox.about(self, "Done", "Merge succeeded")
@@ -180,7 +180,7 @@ class pdf_manipulate(QWidget):
             QMessageBox.about(self, "Error", "An input file cannot be empty")
             self.input_error_flag = False
             return
-        reader = PdfFileReader(self.file_name_dict_splitter[0], strict=False)
+        reader = PdfReader(self.file_name_dict_splitter[0], strict=False)
         pages_str = self.line_page_numbers[0].text()
         save_dir_name = QFileDialog.getExistingDirectory(self, "Select destination directory")
         pages_full = pages_str.split(",")
@@ -189,13 +189,13 @@ class pdf_manipulate(QWidget):
                 if (not pages.isnumeric()):
                     QMessageBox.about(self, "Error", "Invalid pages to extract")
                     return
-                writer = PdfFileWriter()
-                writer.addPage(reader.getPage(int(pages) - 1))
+                writer = PdfWriter()
+                writer.add_page(reader.pages[int(pages) - 1])
                 file_name = str(save_dir_name + "/" + "page_" + pages + ".pdf")
                 with open(file_name, 'wb') as outfile:
                     writer.write(outfile)
             elif ":" in pages:
-                writer = PdfFileWriter()
+                writer = PdfWriter()
                 page = pages.split(":")
                 if ((not(page[0].isnumeric())) or (not(page[1].isnumeric()))):
                     QMessageBox.about(self, "Error", "Invalid pages to extract")
@@ -204,7 +204,7 @@ class pdf_manipulate(QWidget):
                 last_page = int(page[1]) - 1
                 i = first_page
                 while (i <= last_page):
-                    writer.addPage(reader.getPage(int(i)))
+                    writer.add_page(reader.pages[int(i)])
                     i += 1
                 file_name = str(save_dir_name + "/" + "pages_" + str(page[0]) + "_" + str(page[1]) + ".pdf")
                 with open(file_name, 'wb') as outfile:
